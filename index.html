@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <style>
+            * {
+                background-color:#000000;
+                box-sizing: border-box;
+                color:#ffffff;
+                margin:0;
+                overflow:hidden;
+                padding:0;
+            }
+            body, html {
+                display:flex;
+                flex-direction: column;
+                height:100%;
+                width:100%;
+            }
+            button {
+                border:1px solid white;
+                padding:4px;
+            }
+            button:hover {
+                background-color:#808080;
+            }
+            button:active {
+                background-color:#000000;
+            }
+            textarea {
+                width:100%
+            }
+        </style>
+    </head>
+    <body>
+        <textarea id="textarea"></textarea>
+        <button id="button">Compile</button>
+        <script src="byte-code-compiler.js"></script>
+        <script src="browser-interface.js"></script>
+    </body>
+</html>
