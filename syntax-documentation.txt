@@ -1,0 +1,170 @@
+############
+# COMMENTS #
+############
+# A comment is started with a single pound sign.
+# Inline comments are not supported
+# Once # is encountered on a line, the following text is ignored
+# Carriage return ends a comment
+
+##############
+# DIRECTIVES #
+##############
+# All compiler directives will be prefixed with @
+
+@print(10) # Calls a platform dependent method that prints 10 to the console.
+# @cast(value type)
+@cast(10, $f32) # converts the value to the type. 10 becomes 10.0
+
+#########
+# TYPES #
+#########
+# All types are prefixed with $
+# Arithmetic is not allowed on mixed types. All operations must be performed on like types.
+# Typecasts will be required to do arithmetic.
+# Arithmetic is not allowed on $b8, $c8, or $v0
+$b8  # boolean      (8 bit)  only considers first bit
+$c8  # character    (8 bit)  intended for ASCII text characters or UTF8 code units
+$i8  # signed int   (8 bit)
+$i16 # signed int   (16 bit)
+$i32 # signed int   (32 bit)
+$i64 # signed int   (64 bit)
+$f32 # signed float (32 bit)
+$f64 # signed float (64 bit)
+$u8  # unsigned int (8 bit)
+$u16 # unsigned int (16 bit)
+$u32 # unsigned int (32 bit)
+$u64 # unsigned int (64 bit)
+$v0   # void type. You cannot declare a variable with $v0, only functions.
+# $c16  # character (16 bit) possible future type
+# $c32  # character (32 bit) possible future type
+
+#############
+# VARIABLES #
+#############
+# Variables are scoped by the compiler.
+# All variable declarations generate a slot in memory that lives for the life of the program.
+# Variables resolve to offsets. There is no stack, so scope simply modifies the variable name.
+$u16 w        # Declares a u16 called w and sets it to 0 by default.
+$u8  x = 10   # Declares a u8 called x and sets it to 10
+$f32 y = 1.25 # Declares a float32 called y and sets it to 1.25
+
+# Variables can be initialized and set to a variable value:
+$u8 z = w + x # Sets z to w + x
+$u8 a = x + @cast(y, $u8)
+
+##########
+# ARRAYS #
+##########
+# Arrays are just contiguous blocks of the specified type.
+$u8[10] u8Array           # Declares an uninitialized array of u8 values, no brackets required.
+$u8[2]  myArray = [10 20] # Declares an initialized array of u8 values, brackets required.
+
+# Variable length arrays are not allowed.
+$u8[x] invalidArray # Will throw a compiler error, because array length must be known.
+
+# Bracket syntax allows array initialization to span multiple lines:
+$u8[10] u8Array = [0,1,2,3,4
+                   5,6,7,8,9] # The compiler will read all values between brackets across new lines.
+
+# Multi-dimensional arrays are possible, but ultimately arrays are flat:
+$u8[2 2] positions = [1,2,3,4] # array length is the product of all numbers in length brackets.
+positions[0 1] # evaluates to 2
+positions[0]   # evaluates to 1
+
+# Here is an example of a multi-dimensional array of structs:
+# Define the struct:
+$struct {$u8 a, $f32 b}
+$struct[2 2] structs [{ 1, 1.1 }, { 2, 2.2 }, { 3, 3.3 }, { 4, 4.4 }]
+
+##################
+# STRUCTS/TUPLES #
+##################
+# Structs and tuples can be declared with $ if no existing type with that name exists.
+# The following defines a new type called struct that contains two named members of type $u8.
+$struct { $u8 a, $u8 b }
+# Initializing a custom type requires brackets.
+$struct s { 10, 20 } # declares a new $struct with the values 10 and 20 for a and b.
+s.a # evaluates to 10
+# Defining a tuple is the same thing, but without labels:
+$tuple { $u8 $f32 }
+$tuple t { 1, 1.2 }
+# Use curly bracket notation to access members by index.
+t{0} # evaluates to 1
+
+# Mixed types are allowed in structs and tuples.
+# Memory will be allocated in declaration order with padding.
+# Memory will be aligned to the largest type.
+$mix { $u8 x, $f32 y }
+$mix myMix { 10, 11.0 }
+
+# You can create an array of structs.
+# In this example, myMix and { myMix.x myMix.y } are both copied to new memory slots.
+$mix[3] mixArray [ myMix, { myMix.x, myMix.y }, { 20, 12.0 }]
+
+# You can create a struct or tuple that contains a struct or tuple:
+$bag { $mix mix, $u8 }
+$bag mixedBag { { 10, 11.0 }, 1 }
+
+###########
+# ALIASES #
+###########
+# An alias allows you to give an alternate name to a variable.
+# Aliases are scoped, just like variables.
+# Aliases do not live in memory at runtime, they are only tracked during compile time.
+# Declare a variable:
+$u8 a = 10
+# Declare an alias for a:
+&u8 alias = &a # &u8 specifies the alias type; &a indicates the reference to a rather than its value.
+
+alias = 11 # Set a to 11 using alias
+alias      # evaluates to 11
+$u8 b = 1
+alias = &b # Assigns the alias to b.
+alias      # evaluates to 1
+
+# The compiler sees alias as the variable it references. It is just another name for the variable.
+
+#############
+# FUNCTIONS #
+############# 
+# Functions trigger the execution of instructions.
+# A function name may also double as a variable.
+# Declare a function:
+$u8 sum = ($u8 a, $u8 b) { # Declares 3 variables: sum, a, and b. a and b are function scoped.
+  sum = a + b # Set sum to a + b
+}
+# Before calling sum:
+sum   # evaluates to 0 because sum is a variable that initializes to 0
+sum.a # also evaluates to 0
+sum.b # also evaluates to 0
+# Call the function:
+sum(1, 2) # evaluates to 3
+sum      # Still evaluates to 3, because sum was set during function execution
+sum.a    # Evaluates to 1
+sum.b    # Evaluates to 2
+
+# Functions are like structs that can modify themselves according to a set of instructions.
+# Functions can also be void.
+$v0 add(&u8 a, $u8 b) { # add does not get a slot in memory because it is a void type.
+  a = a + b # Set a to a + b
+}
+
+add # Always evaluates to void
+
+# Declare two variables for use with the add function.
+$u8 x = 10;
+$u8 y = 11;
+
+# Pass x by reference, not the value of x
+add(&x, 5) # Evaluates to void because add always evaluates to void.
+x         # Evaluates to 15, because the function executed.
+# Pass y by reference, not the value of y
+add(&y, 2) # Evaluates to void
+y          # Evaluates to 13
+
+
+$u8 sum($u8 a, $u8 b) {
+  sum = a + b
+}
+
+sum(sum(5, 6), 1) # Evaluates to 12

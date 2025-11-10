@@ -1,1 +1,17 @@
-Hello, this is a readme
+Ant is meant to be a limited, yet high level language that maps cleanly to Assembly.
+
+Proposed Features/Goals:
+* All declared variables live for the lifetime of the program. This leads to a larger memory footprint, but no runtime overhead for stack allocation or garbage collection.
+* Variables are scoped from the developer's perspective, but the compiler produces flat, contiguous memory, in which all declared variables resolve to an offset. This allows for semantic clarity without any runtime overhead for stack frames, and efficient, constant time variable access.
+* There is no stack, and there is no heap. All memory is allocated by the compiler into a single binary. The binary size never changes at runtime, and all offsets remain consistent.
+* Note: There is no function recursion because there is no stack.
+* Variables are strongly typed and the developer is responsible for type casting.
+* Natural data serialization via memory dump, because all memory locations are fixed, contiguous, and live for the life of the program.
+* Compiler written in c produces Ant byte code and memory buffer and packs them into a binary.
+* VM programmed in c loads binary and processes Ant byte code and updates memory buffer.
+* Architecture specific compilers convert Ant byte code to Assembly
+
+The goal of Ant is to produce deterministic, memory safe programs that work well with data oriented designs like entity component systems, fixed sized simulations, and any other application that don't require dynamic allocation. It would work well in embeded systems or for educational projects. It could work particularly well in the context of a virtual game console or "fantasy console". 
+
+NOTE from the developer:
+While researching a design for Ant, I discovered that a completely static memory layout can be achieved in C by using a large struct. The struct can be written to a file and loaded back into memory, achieving complete state serialization, which was a core goal of Ant. Also, c can be compiled to Web Assembly (WASM), which already runs everywhere in a fixed size, linear format. Ant offers little benefits over c + WASM outside of educational opportunities, so I likely will not continue to develop Ant as a primary project.
